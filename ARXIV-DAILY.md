@@ -27,9 +27,6 @@
           PAGES_PAT: ${{ secrets.PAGES_PAT }}
         run: |
           set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
           SITE=$(mktemp -d)
           git clone --depth 1 --branch source \
             "https://x-access-token:${PAGES_PAT}@github.com/pengzhao311/pengzhao311.github.io.git" "$SITE"
@@ -42,6 +39,8 @@
           python scripts/build_site_index.py "$SITE/source/arxiv"
 
           cd "$SITE"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No new reports."
