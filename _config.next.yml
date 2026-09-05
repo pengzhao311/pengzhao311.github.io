@@ -1,0 +1,47 @@
+# NexT 主题配置（覆盖主题默认值）
+# 文档: https://theme-next.js.org/docs/theme-settings/
+
+# 方案：Gemini（旧站同款风格）
+scheme: Gemini
+
+# 暗色模式（跟随系统，可手动切换）
+darkmode: true
+
+# 站点图标（占位，可换成课题组 logo）
+favicon:
+  small: /images/favicon-16x16-next.png
+  medium: /images/favicon-32x32-next.png
+  apple_touch_icon: /images/apple-touch-icon-next.png
+  safari_pinned_tab: /images/logo.svg
+
+# 导航菜单（自定义项的显示名在 source/_data/languages.yml）
+menu:
+  home: / || fa fa-home
+  research: /research/ || fa fa-flask
+  members: /members/ || fa fa-users
+  publications: /publications/ || fa fa-book
+  papers: /arxiv/ || fa fa-newspaper
+  tags: /tags/ || fa fa-tags
+  categories: /categories/ || fa fa-th
+  archives: /archives/ || fa fa-archive
+
+# 侧边栏
+sidebar:
+  position: left
+  display: post
+
+# 页脚
+footer:
+  since: 2026
+  powered:
+    enable: true
+
+# 回到顶部 + 阅读进度
+back2top:
+  enable: true
+  sidebar: false
+  scrollpercent: true
+
+# 阅读进度条
+reading_progress:
+  enable: true
