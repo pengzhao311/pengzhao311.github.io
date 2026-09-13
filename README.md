@@ -19,9 +19,9 @@
 │   ├── members/           # 成员页（占位）
 │   ├── research/          # 研究方向页（占位）
 │   ├── publications/      # 论文列表页（占位）
-│   ├── arxiv/             # 每日论文动态（index.html 由脚本生成，reports/ 存日报）
+│   ├── arxiv/             # 每日论文动态（近期公开报告 + index.html）
 │   └── _data/languages.yml # 自定义菜单中文标签
-├── scripts/build_site_index.py  # 生成「论文动态」列表页
+├── tools/build_site_index.py    # 手动重建「论文动态」列表页
 └── .github/workflows/deploy.yml # 构建 + 部署到 gh-pages
 ```
 
@@ -42,6 +42,10 @@ npx hexo generate    # 生成静态产物到 public/
 ## 每日论文动态
 
 见 [ARXIV-DAILY.md](ARXIV-DAILY.md)。
+
+本站只承担公开展示职责：`source/arxiv/reports/` 保留最近 30 天 HTML 报告，
+`source/arxiv/index.html` 提供公开目录。完整历史、SQLite 备份和私有分析归档在私有仓库
+`pengzhao311/quantum-lab` 中维护。
 
 ## 修改站点信息（占位 → 真实）
 

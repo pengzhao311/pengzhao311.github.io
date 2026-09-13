@@ -1,52 +1,74 @@
 #!/usr/bin/env python3
-"""生成每日论文动态的静态 index.html（列出 site_dir/reports 下所有 HTML 报告）。
+"""Build the public arXiv report index for source/arxiv."""
 
-用法: python scripts/build_site_index.py <site_dir>
-其中 <site_dir> 是包含 reports/ 子目录、且要写入 index.html 的目录
-（Hexo 场景下即 source/arxiv）。
-"""
 import argparse
 import html
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 DATE_RE = re.compile(r"(\d{4}-\d{2}-\d{2})")
 
 
 def report_source(p: Path) -> str:
-    # "ARXIV_Report_2026-09-03_..." -> "ARXIV"
     stem = p.stem
     return stem.split("_Report_", 1)[0] if "_Report_" in stem else stem
 
 
 def report_date(p: Path) -> str:
-    m = DATE_RE.search(p.name)
-    return m.group(1) if m else datetime.fromtimestamp(p.stat().st_mtime).strftime("%Y-%m-%d")
+    match = DATE_RE.search(p.name)
+    return match.group(1) if match else datetime.fromtimestamp(p.stat().st_mtime).strftime("%Y-%m-%d")
+
+
+def report_datetime(p: Path) -> datetime:
+    try:
+        return datetime.strptime(report_date(p), "%Y-%m-%d").replace(tzinfo=timezone.utc)
+    except ValueError:
+        return datetime.fromtimestamp(p.stat().st_mtime, tz=timezone.utc)
+
+
+def prune_reports(reports_dir: Path, max_age_days: int) -> int:
+    cutoff = datetime.now(timezone.utc) - timedelta(days=max_age_days)
+    removed = 0
+    for path in reports_dir.rglob("*.html"):
+        if report_datetime(path) < cutoff:
+            path.unlink()
+            removed += 1
+    for directory in sorted(
+        (p for p in reports_dir.rglob("*") if p.is_dir()),
+        key=lambda p: len(p.parts),
+        reverse=True,
+    ):
+        try:
+            directory.rmdir()
+        except OSError:
+            pass
+    return removed
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("site_dir", type=Path)
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("site_dir", type=Path)
+    parser.add_argument("--max-age-days", type=int, default=None)
+    args = parser.parse_args()
 
     site = args.site_dir.resolve()
     reports_dir = site / "reports"
-    reports = sorted(reports_dir.rglob("*.html")) if reports_dir.is_dir() else []
+    if reports_dir.is_dir() and args.max_age_days is not None:
+        print(f"pruned {prune_reports(reports_dir, args.max_age_days)} old public reports")
 
+    reports = sorted(reports_dir.rglob("*.html")) if reports_dir.is_dir() else []
     rows = []
-    for p in sorted(reports, key=lambda x: x.name, reverse=True):
-        rel = p.relative_to(site).as_posix()
-        rows.append((report_date(p), report_source(p), rel))
+    for path in sorted(reports, key=lambda item: item.name, reverse=True):
+        rows.append((report_date(path), report_source(path), path.relative_to(site).as_posix()))
 
     items = "\n".join(
-        f'<li><span class="d">{html.escape(d)}</span>'
-        f'<span class="s">{html.escape(s)}</span>'
+        f'<li><span class="d">{html.escape(date)}</span>'
+        f'<span class="s">{html.escape(source)}</span>'
         f'<a href="{html.escape(rel)}">{html.escape(rel)}</a></li>'
-        for d, s, rel in rows
+        for date, source, rel in rows
     )
-
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     doc = f"""<!doctype html>
 <html lang="zh-CN">
